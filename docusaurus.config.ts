@@ -10,17 +10,14 @@ const config: Config = {
   favicon: 'img/med.jpg',
 
   // Set the production url of your site here
+
   url: 'https://mosakkari.github.io',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/My-Site/',
-  //url: 'https://mosakkari.github.io',
-  //baseUrl: '/My-Site/',
-  
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'mosakkari', // Usually your GitHub org/user name.
-  projectName: 'My-Site', // Usually your repo name.
+  baseUrl: '/My-Site/',  // Vérifie bien le nom du repo ici !
+  trailingSlash: false,   // Ajoute ceci pour éviter les problèmes GitHub Pages
+  organizationName: 'mosakkari', // Ton nom GitHub
+  projectName: 'My-Site', // Le nom du repo, exact
+  deploymentBranch: 'gh-pages',
+
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
