@@ -1,0 +1,27 @@
+{
+  "id": "parcours-universitaire/tutorial-basics/create-a-document",
+  "title": "Create a Document",
+  "description": "Documents are groups of pages connected through:",
+  "source": "@site/docs/parcours-universitaire/tutorial-basics/create-a-document.md",
+  "sourceDirName": "parcours-universitaire/tutorial-basics",
+  "slug": "/parcours-universitaire/tutorial-basics/create-a-document",
+  "permalink": "/My-Site/docs/parcours-universitaire/tutorial-basics/create-a-document",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/parcours-universitaire/tutorial-basics/create-a-document.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "parcoursSidebar",
+  "previous": {
+    "title": "Create a Page",
+    "permalink": "/My-Site/docs/parcours-universitaire/tutorial-basics/create-a-page"
+  },
+  "next": {
+    "title": "Create a Blog Post",
+    "permalink": "/My-Site/docs/parcours-universitaire/tutorial-basics/create-a-blog-post"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "cours/BigData/tp",
+  "title": "tp",
+  "description": "",
+  "source": "@site/docs/cours/BigData/tp.md",
+  "sourceDirName": "cours/BigData",
+  "slug": "/cours/BigData/tp",
+  "permalink": "/My-Site/docs/cours/BigData/tp",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/docs/cours/BigData/tp.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "coursSidebar",
+  "previous": {
+    "title": "td",
+    "permalink": "/My-Site/docs/cours/BigData/td"
+  },
+  "next": {
+    "title": "intro",
+    "permalink": "/My-Site/docs/cours/BD_NoSQL/intro"
+  }
+}

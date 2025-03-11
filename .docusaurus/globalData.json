@@ -1,0 +1,221 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/My-Site/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/My-Site/docs",
+          "mainDocId": "parcours-universitaire/tutorial-basics/create-a-page",
+          "docs": [
+            {
+              "id": "cours/BD_NoSQL/cm",
+              "path": "/My-Site/docs/cours/BD_NoSQL/cm",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD_NoSQL/intro",
+              "path": "/My-Site/docs/cours/BD_NoSQL/intro",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD_NoSQL/td",
+              "path": "/My-Site/docs/cours/BD_NoSQL/td",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD_NoSQL/tp",
+              "path": "/My-Site/docs/cours/BD_NoSQL/tp",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD2/cm",
+              "path": "/My-Site/docs/cours/BD2/cm",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD2/intro",
+              "path": "/My-Site/docs/cours/BD2/intro",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD2/td",
+              "path": "/My-Site/docs/cours/BD2/td",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD2/tp",
+              "path": "/My-Site/docs/cours/BD2/tp",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD4/cm",
+              "path": "/My-Site/docs/cours/BD4/cm",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD4/intro",
+              "path": "/My-Site/docs/cours/BD4/intro",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD4/td",
+              "path": "/My-Site/docs/cours/BD4/td",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BD4/tp",
+              "path": "/My-Site/docs/cours/BD4/tp",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BigData/cm",
+              "path": "/My-Site/docs/cours/BigData/cm",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BigData/intro",
+              "path": "/My-Site/docs/cours/BigData/intro",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BigData/td",
+              "path": "/My-Site/docs/cours/BigData/td",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/BigData/tp",
+              "path": "/My-Site/docs/cours/BigData/tp",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/DATA5/cm",
+              "path": "/My-Site/docs/cours/DATA5/cm",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/DATA5/intro",
+              "path": "/My-Site/docs/cours/DATA5/intro",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/DATA5/td",
+              "path": "/My-Site/docs/cours/DATA5/td",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "cours/DATA5/tp",
+              "path": "/My-Site/docs/cours/DATA5/tp",
+              "sidebar": "coursSidebar"
+            },
+            {
+              "id": "enseignements/manage-docs-versions",
+              "path": "/My-Site/docs/enseignements/manage-docs-versions",
+              "sidebar": "enseignementSidebar"
+            },
+            {
+              "id": "enseignements/translate-your-site",
+              "path": "/My-Site/docs/enseignements/translate-your-site",
+              "sidebar": "enseignementSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/My-Site/docs/intro"
+            },
+            {
+              "id": "parcours-universitaire/tutorial-basics/congratulations",
+              "path": "/My-Site/docs/parcours-universitaire/tutorial-basics/congratulations",
+              "sidebar": "parcoursSidebar"
+            },
+            {
+              "id": "parcours-universitaire/tutorial-basics/create-a-blog-post",
+              "path": "/My-Site/docs/parcours-universitaire/tutorial-basics/create-a-blog-post",
+              "sidebar": "parcoursSidebar"
+            },
+            {
+              "id": "parcours-universitaire/tutorial-basics/create-a-document",
+              "path": "/My-Site/docs/parcours-universitaire/tutorial-basics/create-a-document",
+              "sidebar": "parcoursSidebar"
+            },
+            {
+              "id": "parcours-universitaire/tutorial-basics/create-a-page",
+              "path": "/My-Site/docs/parcours-universitaire/tutorial-basics/create-a-page",
+              "sidebar": "parcoursSidebar"
+            },
+            {
+              "id": "parcours-universitaire/tutorial-basics/deploy-your-site",
+              "path": "/My-Site/docs/parcours-universitaire/tutorial-basics/deploy-your-site",
+              "sidebar": "parcoursSidebar"
+            },
+            {
+              "id": "parcours-universitaire/tutorial-basics/markdown-features",
+              "path": "/My-Site/docs/parcours-universitaire/tutorial-basics/markdown-features",
+              "sidebar": "parcoursSidebar"
+            },
+            {
+              "id": "tutorial-basics/congratulations",
+              "path": "/My-Site/docs/tutorial-basics/congratulations"
+            },
+            {
+              "id": "tutorial-basics/create-a-blog-post",
+              "path": "/My-Site/docs/tutorial-basics/create-a-blog-post"
+            },
+            {
+              "id": "tutorial-basics/create-a-document",
+              "path": "/My-Site/docs/tutorial-basics/create-a-document"
+            },
+            {
+              "id": "tutorial-basics/create-a-page",
+              "path": "/My-Site/docs/tutorial-basics/create-a-page"
+            },
+            {
+              "id": "tutorial-basics/deploy-your-site",
+              "path": "/My-Site/docs/tutorial-basics/deploy-your-site"
+            },
+            {
+              "id": "tutorial-basics/markdown-features",
+              "path": "/My-Site/docs/tutorial-basics/markdown-features"
+            },
+            {
+              "id": "tutorial-extras/manage-docs-versions",
+              "path": "/My-Site/docs/tutorial-extras/manage-docs-versions"
+            },
+            {
+              "id": "tutorial-extras/translate-your-site",
+              "path": "/My-Site/docs/tutorial-extras/translate-your-site"
+            },
+            {
+              "id": "/category/tutorial---basics",
+              "path": "/My-Site/docs/category/tutorial---basics",
+              "sidebar": "parcoursSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "parcoursSidebar": {
+              "link": {
+                "path": "/My-Site/docs/category/tutorial---basics",
+                "label": "Tutorial - Basics"
+              }
+            },
+            "enseignementSidebar": {
+              "link": {
+                "path": "/My-Site/docs/enseignements/manage-docs-versions",
+                "label": "enseignements/manage-docs-versions"
+              }
+            },
+            "coursSidebar": {
+              "link": {
+                "path": "/My-Site/docs/cours/BigData/intro",
+                "label": "cours/BigData/intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}
