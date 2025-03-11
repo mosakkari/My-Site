@@ -6,14 +6,14 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Mohamed SAKKARI',
-  tagline: 'Dinosaurs are cool',
+  tagline: 'Enseignant-chercheur IUT de La Rochelle & L3i',
   favicon: 'img/med.jpg',
 
   // Set the production url of your site here
   url: 'https://mosakkari.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/My Site/',
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -66,7 +66,6 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'My Site',
       logo: {
@@ -78,7 +77,7 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Parcours universitaire',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
@@ -95,7 +94,7 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Tutorial',
+              label: 'Parcours universitaire',
               to: '/docs/intro',
             },
           ],
