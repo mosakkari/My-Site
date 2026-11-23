@@ -1,0 +1,170 @@
+[
+ {
+  "sku": "P001",
+  "libelle": "Arabica Éthiopie",
+  "categorie": "Café",
+  "prix_ht": 9.5,
+  "tva": 5.5
+ },
+ {
+  "sku": "P002",
+  "libelle": "Robusta Vietnam",
+  "categorie": "Café",
+  "prix_ht": 7.2,
+  "tva": 5.5
+ },
+ {
+  "sku": "P003",
+  "libelle": "Mélange Maison",
+  "categorie": "Café",
+  "prix_ht": 8.4,
+  "tva": 5.5
+ },
+ {
+  "sku": "P004",
+  "libelle": "Décaféiné",
+  "categorie": "Café",
+  "prix_ht": 9.1,
+  "tva": 5.5
+ },
+ {
+  "sku": "P005",
+  "libelle": "Espresso Italien",
+  "categorie": "Café",
+  "prix_ht": 10.3,
+  "tva": 5.5
+ },
+ {
+  "sku": "P006",
+  "libelle": "Moka Yémen",
+  "categorie": "Café",
+  "prix_ht": 12.8,
+  "tva": 5.5
+ },
+ {
+  "sku": "P007",
+  "libelle": "Earl Grey",
+  "categorie": "Thé",
+  "prix_ht": 6.9,
+  "tva": 5.5
+ },
+ {
+  "sku": "P008",
+  "libelle": "Sencha",
+  "categorie": "Thé",
+  "prix_ht": 8.5,
+  "tva": 5.5
+ },
+ {
+  "sku": "P009",
+  "libelle": "Jasmin",
+  "categorie": "Thé",
+  "prix_ht": 7.8,
+  "tva": 5.5
+ },
+ {
+  "sku": "P010",
+  "libelle": "Rooibos",
+  "categorie": "Thé",
+  "prix_ht": 5.9,
+  "tva": 5.5
+ },
+ {
+  "sku": "P011",
+  "libelle": "Darjeeling",
+  "categorie": "Thé",
+  "prix_ht": 11.2,
+  "tva": 5.5
+ },
+ {
+  "sku": "P012",
+  "libelle": "Matcha",
+  "categorie": "Thé",
+  "prix_ht": 14.5,
+  "tva": 5.5
+ },
+ {
+  "sku": "P013",
+  "libelle": "Moulin manuel",
+  "categorie": "Accessoires",
+  "prix_ht": 24.9,
+  "tva": 20.0
+ },
+ {
+  "sku": "P014",
+  "libelle": "Cafetière piston",
+  "categorie": "Accessoires",
+  "prix_ht": 19.9,
+  "tva": 20.0
+ },
+ {
+  "sku": "P015",
+  "libelle": "Théière fonte",
+  "categorie": "Accessoires",
+  "prix_ht": 34.0,
+  "tva": 20.0
+ },
+ {
+  "sku": "P016",
+  "libelle": "Filtres x100",
+  "categorie": "Accessoires",
+  "prix_ht": 3.5,
+  "tva": 20.0
+ },
+ {
+  "sku": "P017",
+  "libelle": "Tasse double paroi",
+  "categorie": "Accessoires",
+  "prix_ht": 12.0,
+  "tva": 20.0
+ },
+ {
+  "sku": "P018",
+  "libelle": "Balance précision",
+  "categorie": "Accessoires",
+  "prix_ht": 29.0,
+  "tva": 20.0
+ },
+ {
+  "sku": "P019",
+  "libelle": "Chocolats assortis",
+  "categorie": "Gourmandises",
+  "prix_ht": 8.9,
+  "tva": 5.5
+ },
+ {
+  "sku": "P020",
+  "libelle": "Biscuits beurre",
+  "categorie": "Gourmandises",
+  "prix_ht": 4.5,
+  "tva": 5.5
+ },
+ {
+  "sku": "P021",
+  "libelle": "Confiture figue",
+  "categorie": "Gourmandises",
+  "prix_ht": 5.8,
+  "tva": 5.5
+ },
+ {
+  "sku": "P022",
+  "libelle": "Miel de La Rochelle",
+  "categorie": "Gourmandises",
+  "prix_ht": 9.2,
+  "tva": 5.5
+ },
+ {
+  "sku": "P023",
+  "libelle": "Caramels beurre salé",
+  "categorie": "Gourmandises",
+  "prix_ht": 6.4,
+  "tva": 5.5
+ },
+ {
+  "sku": "P024",
+  "libelle": "Pâte à tartiner",
+  "categorie": "Gourmandises",
+  "prix_ht": 5.2,
+  "tva": 5.5
+ }
+]
