@@ -18,8 +18,12 @@ Les fichiers publiés (PDF, notebooks, données) sont dans `static/files/`. Le d
 ```
 npm install        # une seule fois
 npm run admin      # dashboard local : http://127.0.0.1:4000
-npm start          # voir le site en local : http://localhost:3000/My-Site/
+npm start          # site en français : http://localhost:3000/My-Site/
+npm run start:en   # site en anglais : http://localhost:3000/My-Site/en/
+npm run preview    # les DEUX langues ensemble, comme en ligne (build puis serveur)
 ```
+
+En mode développement, Docusaurus ne sert qu'une langue à la fois : avec `npm start`, le sélecteur de langue mène donc à « Page introuvable ». C'est normal en local ; en ligne, les deux langues sont publiées. Utilisez `npm run preview` pour tester le changement de langue.
 
 Dans le dashboard :
 

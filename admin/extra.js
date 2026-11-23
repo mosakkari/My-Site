@@ -20,9 +20,38 @@ module.exports = function makeHandler(ctx) {
     if (!p.name || !String(p.name).trim()) errs.push('Profil : le nom est obligatoire');
     for (const [k, v] of Object.entries(p.links || {})) if (v && !isHttp(v)) errs.push(`Profil : lien ${k} doit commencer par http:// ou https://`);
     if (p.email && !EMAIL.test(p.email)) errs.push('Profil : adresse email invalide');
+    for (const [i, t] of (p.timeline || []).entries()) {
+      if (t.category && !['enseignement', 'rd', 'industrie'].includes(t.category)) errs.push(`Profil : étape ${i + 1}, catégorie invalide`);
+    }
     for (const f of [p.photo, p.cv && p.cv.fr, p.cv && p.cv.en]) {
       if (f && (!SAFE_PATH.test(f) || f.includes('..'))) errs.push(`Profil : chemin de fichier invalide (${f})`);
     }
+    return errs;
+  }
+
+  const NEWS = path.join(ROOT, 'data', 'news.json');
+  const NEWS_TYPES = ['nouvelle', 'projet', 'publication', 'recherche', 'participation', 'enseignement'];
+  const NEWS_STATUS = ['', 'en-cours', 'soumis', 'accepte', 'publie'];
+
+  function validateNews(n) {
+    if (!n || !Array.isArray(n.items)) return ['actualités invalides'];
+    const errs = [];
+    const seen = new Set();
+    n.items.forEach((it, i) => {
+      const w = `Actualité ${i + 1}`;
+      if (!/^[a-z0-9][a-z0-9-]*$/.test(it.id || '')) errs.push(`${w} : identifiant invalide (minuscules, chiffres, tirets)`);
+      if (seen.has(it.id)) errs.push(`${w} : identifiant en double`);
+      seen.add(it.id);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(it.date || '') || Number.isNaN(Date.parse(it.date))) errs.push(`${w} : date invalide (format AAAA-MM-JJ)`);
+      if (!NEWS_TYPES.includes(it.type)) errs.push(`${w} : type invalide`);
+      if (!it.title || !String(it.title.fr || '').trim()) errs.push(`${w} : titre français manquant`);
+      if (it.link && !isHttp(it.link)) errs.push(`${w} : le lien doit commencer par http:// ou https://`);
+      if (it.status && !NEWS_STATUS.includes(it.status)) errs.push(`${w} : statut invalide`);
+      if (it.image && (!SAFE_PATH.test(it.image) || it.image.includes('..') || !/\.(png|jpe?g|webp)$/i.test(it.image))) errs.push(`${w} : chemin d’image invalide`);
+      if (it.imageFit && !['cover', 'contain'].includes(it.imageFit)) errs.push(`${w} : cadrage d’image invalide`);
+      for (const k of ['with', 'venue']) if (it[k] && String(it[k]).length > 300) errs.push(`${w} : champ « ${k} » trop long (300 caractères max)`);
+      for (const f of [it.title, it.text, it.context]) for (const v of Object.values(f || {})) if (String(v).length > 600) errs.push(`${w} : texte trop long (600 caractères max)`);
+    });
     return errs;
   }
 
@@ -71,6 +100,70 @@ module.exports = function makeHandler(ctx) {
       fs.writeFileSync(tmp, JSON.stringify(prof, null, 2) + '\n', 'utf8');
       fs.renameSync(tmp, PROFILE);
       send(res, 200, {ok: true});
+      return true;
+    }
+
+    if (req.method === 'GET' && p === '/api/news') {
+      send(res, 200, fs.existsSync(NEWS) ? fs.readFileSync(NEWS, 'utf8') : JSON.stringify({items: []}));
+      return true;
+    }
+    if (req.method === 'PUT' && p === '/api/news') {
+      const news = JSON.parse((await readBody(req, 1024 * 1024)).toString('utf8'));
+      const errs = validateNews(news);
+      if (errs.length) { send(res, 400, {errors: errs}); return true; }
+      const tmp = NEWS + '.tmp';
+      fs.writeFileSync(tmp, JSON.stringify(news, null, 2) + '\n', 'utf8');
+      fs.renameSync(tmp, NEWS);
+      send(res, 200, {ok: true});
+      return true;
+    }
+
+    // Import de publications depuis HAL (API publique). Seul l'idHal saisi est envoye, a api.archives-ouvertes.fr.
+    if (req.method === 'POST' && p === '/api/hal') {
+      const {idhal} = JSON.parse((await readBody(req, 4 * 1024)).toString('utf8'));
+      if (!/^[A-Za-z0-9_-]{2,60}$/.test(String(idhal || ''))) { send(res, 400, {error: 'idHal invalide (lettres, chiffres, - et _)'}); return true; }
+      const fl = 'docid,title_s,authFullName_s,producedDateY_i,producedDate_s,journalTitle_s,conferenceTitle_s,bookTitle_s,doiId_s,uri_s,docType_s,fileMain_s';
+      const api = `https://api.archives-ouvertes.fr/search/?q=${encodeURIComponent(`authIdHal_s:"${idhal}"`)}&fl=${fl}&rows=200&sort=${encodeURIComponent('producedDate_tdate desc')}&wt=json`;
+      let json;
+      try {
+        const r = await fetch(api, {signal: AbortSignal.timeout(15000), headers: {Accept: 'application/json'}});
+        if (!r.ok) throw new Error('HAL a répondu ' + r.status);
+        json = JSON.parse((await r.text()).slice(0, 8 * 1024 * 1024));
+      } catch (e) { send(res, 502, {error: 'HAL injoignable : ' + e.message}); return true; }
+      const str = (v) => (Array.isArray(v) ? v[0] : v);
+      const text = (v) => (typeof str(v) === 'string' ? str(v).trim() : '');
+      const url = (v) => (isHttp(text(v)) ? text(v) : '');
+      const docs = ((json.response && json.response.docs) || []).map((d) => ({
+        id: String(d.docid),
+        title: text(d.title_s),
+        authors: Array.isArray(d.authFullName_s) ? d.authFullName_s.join(', ') : text(d.authFullName_s),
+        year: Number(d.producedDateY_i) || '',
+        date: /^\d{4}-\d{2}-\d{2}$/.test(text(d.producedDate_s)) ? text(d.producedDate_s) : (d.producedDateY_i ? `${d.producedDateY_i}-01-01` : ''),
+        venue: text(d.journalTitle_s) || text(d.conferenceTitle_s) || text(d.bookTitle_s),
+        kind: text(d.docType_s),
+        doi: text(d.doiId_s) ? `https://doi.org/${text(d.doiId_s)}` : '',
+        url: url(d.uri_s),
+        pdf: url(d.fileMain_s),
+      })).filter((d) => d.title);
+      send(res, 200, {total: (json.response && json.response.numFound) || docs.length, docs});
+      return true;
+    }
+
+    // image d'actualite : PNG, JPEG ou WebP reconnus par leur contenu (pas seulement l'extension), 5 Mo max
+    if (req.method === 'POST' && p === '/api/upload-news-image') {
+      const body = await readBody(req, 5 * 1024 * 1024);
+      const h = body.slice(0, 12);
+      const ext = h.slice(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47])) ? 'png'
+        : h.slice(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff])) ? 'jpg'
+        : (h.slice(0, 4).toString('latin1') === 'RIFF' && h.slice(8, 12).toString('latin1') === 'WEBP') ? 'webp' : '';
+      if (!ext) { send(res, 400, {error: 'image refusée : PNG, JPEG ou WebP uniquement'}); return true; }
+      const base = path.basename(url.searchParams.get('name') || 'image').replace(/\.[^.]*$/, '').replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 40) || 'image';
+      const dir = path.join(ROOT, 'static', 'img', 'news');
+      fs.mkdirSync(dir, {recursive: true});
+      let name = `${base}.${ext}`;
+      for (let n = 2; fs.existsSync(path.join(dir, name)); n++) name = `${base}-${n}.${ext}`;
+      fs.writeFileSync(path.join(dir, name), body);
+      send(res, 200, {file: `img/news/${name}`, bytes: body.length});
       return true;
     }
 

@@ -1,0 +1,147 @@
+{
+  "$comment": "Actualites affichees dans le carrousel de l'accueil et sur /actualites. A editer avec le dashboard (onglet Actualites). type : nouvelle | recherche | participation | enseignement. Le lien est optionnel (http ou https).",
+  "items": [
+    {
+      "id": "site-en-ligne",
+      "date": "2026-11-23",
+      "type": "nouvelle",
+      "title": {
+        "fr": "Nouveau site en ligne",
+        "en": "New website online"
+      },
+      "text": {
+        "fr": "Retrouvez ici mes enseignements (cours, TD et TP) et, bientôt, mes travaux de recherche.",
+        "en": "Find my teaching material (lectures, tutorials and labs) here and, soon, my research work."
+      },
+      "link": ""
+    },
+    {
+      "id": "hal-learning-dynamic-branch-select",
+      "date": "2026-08-17",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "Learning Dynamic Branch Selection for Domain-Specific Segmentation",
+        "en": "Learning Dynamic Branch Selection for Domain-Specific Segmentation"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "International Conference on Pattern Recognition (ICPR)",
+      "link": "https://univ-rochelle.hal.science/hal-05783001v1"
+    },
+    {
+      "id": "hal-feature-extraction-based-deep-",
+      "date": "2022-01-15",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "Feature Extraction-Based Deep Self-Organizing Map",
+        "en": "Feature Extraction-Based Deep Self-Organizing Map"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "Circuits, Systems, and Signal Processing",
+      "link": "https://hal.science/hal-05498038v1"
+    },
+    {
+      "id": "hal-a-convolutional-deep-self-orga",
+      "date": "2020-03-24",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "A Convolutional Deep Self-Organizing Map Feature extraction for machine learning",
+        "en": "A Convolutional Deep Self-Organizing Map Feature extraction for machine learning"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "Multimedia Tools and Applications",
+      "link": "https://hal.science/hal-05497870v1"
+    },
+    {
+      "id": "hal-urban-crowd-detection-using-so",
+      "date": "2019-06-20",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "Urban Crowd Detection Using SOM, DBSCAN and LBSN Data Entropy: A Twitter Experiment in New York and Madrid",
+        "en": "Urban Crowd Detection Using SOM, DBSCAN and LBSN Data Entropy: A Twitter Experiment in New York and Madrid"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "Electronics",
+      "link": "https://hal.science/hal-05498112v1"
+    },
+    {
+      "id": "hal-unsupervised-features-extracti",
+      "date": "2017-10-30",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "Unsupervised Features Extraction Using a Multi-view Self Organizing Map for Image Classification",
+        "en": "Unsupervised Features Extraction Using a Multi-view Self Organizing Map for Image Classification"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "2017 IEEE/ACS 14th International Conference on Computer Systems and Applications (AICCSA)",
+      "link": "https://hal.science/hal-05498189v1"
+    },
+    {
+      "id": "hal-deep-soms-for-automated-featur",
+      "date": "2016-11-18",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "Deep SOMs for automated feature extraction and classification from big data streaming",
+        "en": "Deep SOMs for automated feature extraction and classification from big data streaming"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "Ninth International Conference on Machine Vision",
+      "link": "https://hal.science/hal-05527245v1"
+    },
+    {
+      "id": "hal-an-architecture-of-distributed",
+      "date": "2015-12-14",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "An architecture of Distributed Beta Wavelet Networks for large image classification in MapReduce",
+        "en": "An architecture of Distributed Beta Wavelet Networks for large image classification in MapReduce"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "2015 15th International Conference on Intelligent Systems Design and Applications (ISDA)",
+      "link": "https://hal.science/hal-05527253v1"
+    },
+    {
+      "id": "hal-hands-tracking-for-augmented-r",
+      "date": "2012-03-24",
+      "type": "publication",
+      "status": "publie",
+      "title": {
+        "fr": "Hands tracking for augmented reality applications",
+        "en": "Hands tracking for augmented reality applications"
+      },
+      "text": {
+        "fr": "",
+        "en": ""
+      },
+      "venue": "2012 International Conference on Information Technology and e-Services (ICITeS)",
+      "link": "https://hal.science/hal-05527229v1"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 2rem;
+  align-items: start;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* zone projetee : fond blanc, QR au centre, adresse lisible en dessous */
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #fff;
+  color: #111;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 16px;
+}
+
+.code {
+  display: block;
+  width: min(100%, 440px);
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+}
+
+.url {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-align: center;
+  word-break: break-all;
+}
+
+.stageFull {
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+  gap: 2vh;
+}
+
+.stageFull .code {
+  width: min(78vh, 90vw);
+}
+
+.stageFull .url {
+  font-size: clamp(1.5rem, 4.5vh, 3rem);
+}
+
+.exit {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.exit:hover { opacity: 1; }
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.field select {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-400);
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  font-size: 1rem;
+}
+
+.tip {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700);
+  overflow-wrap: anywhere; /* coupe seulement les adresses trop longues, pas les mots */
+}

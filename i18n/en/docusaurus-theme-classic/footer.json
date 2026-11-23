@@ -27,6 +27,10 @@
     "message": "GitHub",
     "description": "The label of footer link with label=GitHub linking to https://github.com/mosakkari"
   },
+  "link.item.label.QR code du site": {
+    "message": "Site QR code",
+    "description": "The label of footer link with label=QR code du site linking to /qr"
+  },
   "link.item.label.Mentions légales": {
     "message": "Legal notice",
     "description": "The label of footer link with label=Mentions légales linking to /mentions-legales"

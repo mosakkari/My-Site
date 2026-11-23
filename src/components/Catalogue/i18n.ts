@@ -28,7 +28,8 @@ export type Options = {
   levels: string[]; specialities: string[]; institutions: string[];
   themes: Record<string, Loc>; licenses?: Record<string, License>;
 };
-export type TimelineItem = {period: string; title: Loc; place?: string; detail?: Loc};
+export type TimelineCategory = 'enseignement' | 'rd' | 'industrie';
+export type TimelineItem = {period: string; title: Loc; place?: string; detail?: Loc; category?: TimelineCategory | ''};
 export type Profile = {
   name: string; photo?: string; role: Loc; affiliation: Loc; bio: Loc;
   themes: Loc[]; timeline: TimelineItem[];

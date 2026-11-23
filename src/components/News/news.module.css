@@ -1,0 +1,388 @@
+.carousel {
+  margin: 2.5rem 0 1rem;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.head h2 {
+  margin: 0;
+}
+
+/* piste glissante : chaque cellule fait 1/N de la largeur visible */
+/* Defilement natif (CSS scroll-snap) : glisse au doigt, a la molette, au clavier (fleches) */
+.viewport {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  margin: 0 -0.5rem;
+  padding: 1rem 0; /* place pour la carte centrale agrandie (sinon rognee par le defilement) */
+  overscroll-behavior-x: contain;
+}
+
+/* mode rotation : a chaque decalage les cartes glissent depuis la droite */
+.viewportEnter {
+  animation: slideIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes slideIn {
+  from { opacity: 0.15; transform: translateX(8%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewportEnter { animation: none; }
+}
+
+/* carte du milieu mise en avant, les autres reculent */
+.cell > * {
+  transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.5s ease, box-shadow 0.5s ease;
+}
+
+.cellFeatured > * {
+  transform: scale(1.03);
+  box-shadow: 0 14px 30px -12px rgba(15, 40, 80, 0.35);
+}
+
+.cellDim > * {
+  transform: scale(0.95);
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell > * { transition: none; }
+}
+
+/* barre de progression de la lecture automatique */
+.progress {
+  height: 3px;
+  margin: 0.25rem 0 0;
+  border-radius: 3px;
+  background: var(--ifm-color-emphasis-200);
+  overflow: hidden;
+}
+
+.progressBar,
+.progressIdle {
+  display: block;
+  height: 100%;
+  background: var(--ifm-color-primary);
+  transform-origin: left;
+}
+
+.progressBar {
+  animation-name: fillBar;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.progressIdle {
+  transform: scaleX(0);
+}
+
+@keyframes fillBar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.viewport:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+.cell {
+  flex: 0 0 33.3333%;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 1200px) {
+  .cell { flex-basis: 25%; } /* 4 cartes sur grand ecran */
+}
+
+@media (max-width: 996px) {
+  .cell { flex-basis: 50%; }
+}
+
+@media (max-width: 640px) {
+  .cell { flex-basis: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport { scroll-behavior: auto; }
+}
+
+.card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-top: 4px solid var(--tc-l, var(--ifm-color-primary));
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0.9rem 1.15rem 1.1rem;
+}
+
+/* visuel : photo ou figure, toujours au meme format 16:9 */
+.media {
+  aspect-ratio: 16 / 9;
+  background: var(--ifm-color-emphasis-100);
+  overflow: hidden;
+}
+
+.media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mediaContain img {
+  object-fit: contain;
+  background: #fff;
+}
+
+
+.card h3 {
+  margin: 0.5rem 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.card p {
+  margin: 0 0 0.6rem;
+  font-size: 0.92rem;
+  flex: 1;
+}
+
+.card a {
+  margin-top: auto;
+}
+
+.slide {
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  min-height: 9.5rem;
+}
+
+.slide h3 {
+  margin: 0.4rem 0 0.4rem;
+}
+
+.slide p {
+  margin: 0 0 0.6rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #fff;
+  /* couleur du type : definie une seule fois dans shared.ts (TYPE_COLOR) et passee par --tc-l / --tc-d */
+  background: var(--tc-l, var(--ifm-color-primary-darker));
+}
+
+[data-theme='dark'] .badge {
+  background: var(--tc-d, var(--ifm-color-primary-lighter));
+  color: #111;
+}
+
+.status {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ifm-color-emphasis-400);
+  color: var(--ifm-font-color-base);
+}
+
+.pin {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ifm-color-primary-darker);
+}
+
+[data-theme='dark'] .pin {
+  color: var(--ifm-color-primary-lighter);
+}
+
+[data-theme='dark'] .card {
+  border-top-color: var(--tc-d, var(--ifm-color-primary));
+}
+
+.date {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.facts {
+  margin: 0 0 0.6rem;
+  font-size: 0.88rem;
+}
+
+.facts div {
+  margin-top: 0.2rem;
+}
+
+.facts dt {
+  display: inline;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.facts dt::after {
+  content: ' : ';
+}
+
+.facts dd {
+  display: inline;
+  margin: 0;
+  font-weight: 600;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.arrow,
+.pause {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  border-radius: 50%;
+  width: 2.2rem;
+  height: 2.2rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pause {
+  font-size: 0.8rem;
+}
+
+.arrow:hover,
+.pause:hover {
+  border-color: var(--ifm-color-primary);
+}
+
+.dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dot,
+.dotOn {
+  width: 0.7rem;
+  height: 0.7rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--ifm-color-primary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.dotOn {
+  background: var(--ifm-color-primary);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0.5rem;
+}
+
+/* filtres : chaque type porte sa couleur (legende de la charte) ; « Tout » reste a la couleur du site */
+.chip,
+.chipOn {
+  --c: var(--tc-l, var(--ifm-color-primary));
+  border: 1px solid var(--c);
+  border-radius: 999px;
+  padding: 0.2rem 0.9rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  background: transparent;
+  color: var(--c);
+}
+
+.chipOn {
+  background: var(--c);
+  color: #fff;
+}
+
+[data-theme='dark'] .chip,
+[data-theme='dark'] .chipOn {
+  --c: var(--tc-d, var(--ifm-color-primary));
+}
+
+[data-theme='dark'] .chipOn {
+  color: #111;
+}
+
+.allLink {
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.allLink:hover {
+  background: var(--ifm-color-primary);
+  color: var(--ifm-color-white);
+  text-decoration: none;
+}
+
+[data-theme='dark'] .allLink:hover {
+  color: #111;
+}
+
+/* page d'archive : grille de cartes (3 a 4 par ligne sur grand ecran), pas une carte par ligne */
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+  align-items: stretch;
+}

@@ -1,0 +1,214 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Déclencheur",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8000/changement",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fichier",
+              "value": "commandes_increment.csv"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Le fichier a-t-il changé ?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.change }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Changement ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/lancer",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"fichier\": \"commandes_increment.csv\"}",
+        "options": {}
+      },
+      "name": "Lancer le pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.statut }}",
+              "value2": "ok"
+            }
+          ]
+        }
+      },
+      "name": "Pipeline réussi ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "Succès",
+              "name": "message",
+              "value": "Pipeline lancé : les nouvelles commandes sont chargées.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Succès",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "Échec",
+              "name": "message",
+              "value": "Le pipeline a échoué : le fichier source est refusé.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Échec",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Déclencheur": {
+      "main": [
+        [
+          {
+            "node": "Le fichier a-t-il changé ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Le fichier a-t-il changé ?": {
+      "main": [
+        [
+          {
+            "node": "Changement ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Changement ?": {
+      "main": [
+        [
+          {
+            "node": "Lancer le pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lancer le pipeline": {
+      "main": [
+        [
+          {
+            "node": "Pipeline réussi ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline réussi ?": {
+      "main": [
+        [
+          {
+            "node": "Succès",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Échec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "name": "Surveillance du fichier (correction)",
+  "id": "corrige000000001"
+}

@@ -124,6 +124,7 @@ const config: Config = {
           items: [
             {label: 'À propos', to: '/apropos'},
             {label: 'GitHub', href: 'https://github.com/mosakkari'},
+            {label: 'QR code du site', to: '/qr'},
             {label: 'Mentions légales', to: '/mentions-legales'},
           ],
         },

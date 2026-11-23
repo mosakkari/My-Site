@@ -19,3 +19,35 @@
 .table th, .table td { text-align: right; }
 .table th:first-child, .table td:first-child { text-align: left; }
 .licence { margin: 0 0 1.2rem; color: var(--ifm-color-emphasis-700); font-size: .92rem; }
+
+/* page A propos : sections ancrees (#enseignement, #rd, #industrie), decalees sous la barre de navigation */
+.section {
+  margin-top: 2rem;
+  scroll-margin-top: 5rem;
+}
+
+.subTitle {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.pubs {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.pubs li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.venue {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.92rem;
+}
+
+.pubs .period {
+  display: inline;
+  margin-right: 0.6rem;
+}

@@ -52,6 +52,7 @@
     <button id="tab-mod" class="on">Modules</button>
     <button id="tab-res">Recherche</button>
     <button id="tab-imp">Importer depuis un dossier</button>
+    <button id="tab-news">Actualités</button>
     <button id="tab-prof">Profil</button>
     <button id="tab-pub">Publication</button>
   </nav>
@@ -198,6 +199,71 @@ function moduleView(m) {
       remove('ce module', () => { cat.modules.splice(cat.modules.indexOf(m), 1); cur = null; })));
 }
 
+// ---- import HAL (publications -> travaux de recherche et/ou cartes d'actualite)
+const halState = {docs: null, sel: new Set(), idhal: '', archive: true};
+const HAL_KIND = {ART: 'Article', COMM: 'Communication', POSTER: 'Poster', COUV: 'Chapitre', OUV: 'Ouvrage', THESE: 'Thèse', HDR: 'HDR', REPORT: 'Rapport', PROCEEDINGS: 'Actes', UNDEFINED: 'Autre'};
+function halImported(d) { return (cat.research || []).some((r) => r.links && ((d.url && r.links.paper === d.url) || (d.doi && r.links.doi === d.doi))); }
+function halInNews(d) { return ((news && news.items) || []).some((n) => d.url && n.link === d.url); }
+function uniqueId(base, taken) { let id = base || 'travail'; for (let k = 2; taken.has(id); k++) id = (base || 'travail') + '-' + k; return id; }
+function halPanel() {
+  if (!halState.idhal) { const m = ((prof && prof.links && prof.links.hal) || '').match(/([A-Za-z0-9_-]{2,60})\/?$/); halState.idhal = m ? m[1] : ''; }
+  const box = el('div', {className: 'card'}, el('h3', {}, 'Importer depuis HAL'),
+    el('p', {className: 'hint'}, 'Interroge l’API publique de HAL avec votre idHal (seul cet identifiant est envoyé). Vous choisissez ensuite ce qui est ajouté ; rien n’est publié sans Enregistrer puis Publier.'));
+  const input = el('input', {value: halState.idhal, placeholder: 'idHal, ex. msakkari'});
+  input.oninput = () => { halState.idhal = input.value.trim(); };
+  const out = el('div', {});
+  const renderDocs = () => {
+    out.replaceChildren();
+    if (!halState.docs) return;
+    if (!halState.docs.length) return out.append(el('p', {className: 'hint'}, 'Aucun dépôt trouvé pour cet idHal.'));
+    halState.docs.forEach((d) => {
+      const inRes = halImported(d), inNews = halInNews(d);
+      const done = inRes || inNews;
+      const cb = el('input', {type: 'checkbox', checked: halState.sel.has(d.id), style: 'width:auto'});
+      cb.onchange = () => { cb.checked ? halState.sel.add(d.id) : halState.sel.delete(d.id); };
+      out.append(el('label', {style: 'flex-direction:row;gap:.6rem;align-items:flex-start;font-weight:400;margin:.35rem 0'}, cb,
+        el('span', {}, el('strong', {}, d.title), el('br'), el('span', {className: 'hint'}, [d.year, HAL_KIND[d.kind] || d.kind, d.venue, d.authors].filter(Boolean).join(' · ') + (done ? '  — déjà présent : ' + [inRes ? 'travaux de recherche' : '', inNews ? 'actualités' : ''].filter(Boolean).join(', ') : '')))));
+    });
+    const arch = el('input', {type: 'checkbox', checked: halState.archive, style: 'width:auto'});
+    arch.onchange = () => { halState.archive = arch.checked; };
+    out.append(el('div', {className: 'bar'},
+      el('button', {className: 'pri', onclick: () => {
+        const list = halState.docs.filter((d) => halState.sel.has(d.id) && !halImported(d)); if (!list.length) return say('Rien à ajouter : cochez au moins un dépôt.', 'err');
+        const taken = new Set(cat.research.map((r) => r.id));
+        list.forEach((d) => {
+          const id = uniqueId(slugify(d.title) + (d.year ? '-' + d.year : ''), taken); taken.add(id);
+          const links = {}; if (d.url) links.paper = d.url; if (d.pdf) links.pdf = d.pdf; if (d.doi) links.doi = d.doi;
+          cat.research.push({id, year: d.year || '', title: {fr: d.title, en: d.title}, authors: d.authors, venue: d.venue, kind: d.kind, links, visibility: 'public'});
+        });
+        dirty(); say(list.length + ' travail(aux) ajouté(s). Pensez à Enregistrer.', 'ok'); render();
+      }}, 'Ajouter aux travaux de recherche'),
+      el('button', {onclick: () => {
+        const list = halState.docs.filter((d) => halState.sel.has(d.id) && !halInNews(d)); if (!list.length) return say('Rien à ajouter : cochez au moins un dépôt.', 'err');
+        news.items = news.items || [];
+        const taken = new Set(news.items.map((n) => n.id));
+        list.forEach((d) => {
+          const id = uniqueId('hal-' + slugify(d.title).slice(0, 30), taken); taken.add(id);
+          const item = {id, date: d.date || (new Date().toISOString().slice(0, 10)), type: 'publication', status: 'publie', title: {fr: d.title, en: d.title}, text: {fr: '', en: ''}, venue: d.venue, link: d.url || d.doi || ''};
+          if (halState.archive) item.archiveOnly = true;
+          news.items.push(item);
+        });
+        sortNews(); dirty(); say(list.length + ' carte(s) créée(s) dans Actualités. Pensez à Enregistrer.', 'ok'); renderDocs();
+      }}, 'Créer des cartes d’actualité'),
+      el('label', {style: 'flex-direction:row;gap:.4rem;align-items:center;font-weight:400'}, arch, 'cartes en archive seulement (pas dans le carrousel)')));
+  };
+  box.append(el('div', {className: 'bar'}, el('div', {style: 'flex:1;min-width:220px'}, input), el('button', {onclick: async () => {
+    if (!halState.idhal) return say('Saisissez votre idHal.', 'err');
+    out.replaceChildren(el('p', {className: 'hint'}, 'Interrogation de HAL…'));
+    try {
+      const r = await api('/api/hal', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({idhal: halState.idhal})});
+      const j = await r.json(); if (!r.ok) { out.replaceChildren(); return say(j.error, 'err'); }
+      halState.docs = j.docs; halState.sel = new Set(j.docs.filter((d) => !halImported(d)).map((d) => d.id)); renderDocs();
+    } catch (e) { out.replaceChildren(); say('HAL injoignable : ' + e.message, 'err'); }
+  }}, 'Rechercher dans HAL')), out);
+  renderDocs();
+  return box;
+}
+
 // ---- recherche
 function researchView() {
   cat.research = cat.research || [];
@@ -210,7 +276,7 @@ function researchView() {
       el('div', {className: 'row'}, field('Lien de l’article (optionnel)', r.links, 'paper'), field('PDF (optionnel)', r.links, 'pdf'), field('DOI (optionnel)', r.links, 'doi'), field('Dépôt de code (optionnel)', r.links, 'repo')),
       el('div', {className: 'bar'}, remove('ce travail', () => cat.research.splice(i, 1))));
   });
-  return el('div', {}, list, el('button', {className: 'pri', onclick: () => { cat.research.push({id: '', year: new Date().getFullYear(), title: {fr: '', en: ''}, links: {}}); dirty(); render(); }}, '+ Travail de recherche'));
+  return el('div', {}, halPanel(), list, el('button', {className: 'pri', onclick: () => { cat.research.push({id: '', year: new Date().getFullYear(), title: {fr: '', en: ''}, links: {}}); dirty(); render(); }}, '+ Travail de recherche'));
 }
 
 
@@ -328,7 +394,12 @@ function profileView() {
     t.title = t.title || {fr: '', en: ''}; t.detail = t.detail || {fr: '', en: ''};
     const mv = (d) => () => { const j = i + d; if (j < 0 || j >= p.timeline.length) return; [p.timeline[i], p.timeline[j]] = [p.timeline[j], p.timeline[i]]; dirty(); render(); };
     return el('div', {className: 'card'},
-      el('div', {className: 'row'}, field('Période', t, 'period', {ph: '2020 – 2024'}), field('Lieu / établissement', t, 'place')),
+      el('div', {className: 'row'}, field('Période', t, 'period', {ph: '2020 – 2024'}), field('Lieu / établissement', t, 'place'), (() => {
+        const sel = el('select');
+        sel.append(...[['', '— Autre étape'], ['enseignement', 'Enseignement'], ['rd', 'Recherche & développement'], ['industrie', 'Expérience industrielle']].map(([k, v]) => el('option', {value: k, selected: k === (t.category || '')}, v)));
+        sel.onchange = () => { if (sel.value) t.category = sel.value; else delete t.category; dirty(); };
+        return el('label', {}, 'Section de la page À propos', sel);
+      })()),
       loc('Intitulé', t, 'title'), loc('Détail (optionnel)', t, 'detail', true),
       el('div', {className: 'bar'}, el('button', {onclick: mv(-1)}, '↑'), el('button', {onclick: mv(1)}, '↓'), remove('cette étape', () => p.timeline.splice(i, 1))));
   });
@@ -385,12 +456,91 @@ function publishView() {
   return box;
 }
 
+
+// ---- actualites (carrousel de l'accueil + page /actualites)
+let news = null;
+const newsPreviews = {}; // miniatures locales des images envoyees pendant cette session
+const NEWS_TYPES = {nouvelle: 'Nouvelle', projet: 'Projet / travail en cours', publication: 'Publication (article)', recherche: 'Recherche', participation: 'Événement / participation (conférence, séminaire…)', enseignement: 'Enseignement'};
+const NEWS_STATUS = {'': '— (aucun)', 'en-cours': 'En cours', soumis: 'Soumis', accepte: 'Accepté', publie: 'Publié'};
+function slugify(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'actualite'; }
+// meme ordre que sur le site : epinglees d'abord, puis la plus recente
+function sortNews() { news.items.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.date || '').localeCompare(a.date || '')); }
+function newsPreview(n) {
+  const t = [];
+  if (n.with) t.push('En collaboration avec ' + n.with);
+  if (n.context && n.context.fr) t.push('Dans le cadre de ' + n.context.fr);
+  if (n.venue) t.push(({publie: 'Publié dans ', accepte: 'Accepté à ', soumis: 'Soumis à '}[n.status] || 'Lieu : ') + n.venue);
+  return t.length ? 'Affichage sur le site : ' + t.join(' · ') : 'Renseignez « en collaboration avec », « dans le cadre de » ou « lieu » : le site compose les lignes à partir de ces champs.';
+}
+function imageBlock(n) {
+  n.imageAlt = n.imageAlt || {fr: '', en: ''};
+  const up = el('input', {type: 'file', accept: 'image/png,image/jpeg,image/webp'});
+  up.onchange = async () => {
+    const f = up.files[0]; if (!f) return;
+    const r = await api('/api/upload-news-image?name=' + encodeURIComponent(f.name), {method: 'POST', body: f});
+    const j = await r.json(); if (!r.ok) return say(j.error, 'err');
+    n.image = j.file; newsPreviews[j.file] = URL.createObjectURL(f); dirty(); say('Image envoyée (' + kb(j.bytes) + '). Pensez à Enregistrer.', 'ok'); render();
+  };
+  const fit = el('select');
+  fit.append(el('option', {value: 'cover', selected: n.imageFit !== 'contain'}, 'Remplir le cadre (photo)'), el('option', {value: 'contain', selected: n.imageFit === 'contain'}, 'Image entière (figure, schéma)'));
+  fit.onchange = () => { if (fit.value === 'contain') n.imageFit = 'contain'; else delete n.imageFit; dirty(); };
+  const info = n.image
+    ? el('div', {className: 'bar', style: 'margin:.3rem 0'},
+        newsPreviews[n.image] ? el('img', {src: newsPreviews[n.image], style: 'height:64px;border-radius:6px'}) : el('span', {className: 'hint'}, n.image),
+        el('button', {className: 'del', onclick: () => { delete n.image; delete n.imageFit; dirty(); render(); }}, 'Retirer l’image'))
+    : el('p', {className: 'hint'}, 'Sans image, la carte affiche un bandeau coloré selon son type.');
+  return el('div', {},
+    el('div', {className: 'row'}, el('label', {}, 'Image ou figure (PNG, JPEG, WebP, 5 Mo max)', up), el('label', {}, 'Cadrage', fit)),
+    info, n.image ? loc('Description de l’image (accessibilité, optionnel)', n, 'imageAlt') : '');
+}
+function newsView() {
+  news.items = news.items || [];
+  const cards = news.items.map((n, i) => {
+    n.title = n.title || {fr: '', en: ''}; n.text = n.text || {fr: '', en: ''}; n.context = n.context || {fr: '', en: ''};
+    const typeSel = el('select');
+    typeSel.append(...Object.entries(NEWS_TYPES).map(([k, v]) => el('option', {value: k, selected: k === n.type}, v)));
+    typeSel.onchange = () => { n.type = typeSel.value; dirty(); };
+    const stSel = el('select');
+    stSel.append(...Object.entries(NEWS_STATUS).map(([k, v]) => el('option', {value: k, selected: k === (n.status || '')}, v)));
+    stSel.onchange = () => { if (stSel.value) n.status = stSel.value; else delete n.status; dirty(); render(); };
+    const date = el('input', {type: 'date', value: n.date || ''});
+    date.onchange = () => { n.date = date.value; sortNews(); dirty(); render(); };
+    const check = (label, key) => {
+      const c = el('input', {type: 'checkbox', checked: !!n[key], style: 'width:auto'});
+      c.onchange = () => { if (c.checked) n[key] = true; else delete n[key]; if (key === 'pinned') sortNews(); dirty(); render(); };
+      return el('label', {style: 'flex-direction:row;gap:.5rem;align-items:center;font-weight:400'}, c, label);
+    };
+    const venueLabel = ({publie: 'Publié dans (revue, conférence…)', accepte: 'Accepté à (revue, conférence…)', soumis: 'Soumis à (revue, conférence…)'}[n.status]) || 'Lieu / revue / conférence (optionnel)';
+    return el('div', {className: 'card'},
+      el('div', {className: 'row'}, el('label', {}, 'Date', date), el('label', {}, 'Type', typeSel), el('label', {}, 'Statut (projet, article)', stSel)),
+      loc('Titre', n, 'title'), loc('Texte (optionnel)', n, 'text', true),
+      el('div', {className: 'row'}, field('En collaboration avec (optionnel)', n, 'with', {ph: 'Prénom Nom, Laboratoire…'}), field(venueLabel, n, 'venue')),
+      loc('Dans le cadre de (optionnel)', n, 'context'),
+      el('div', {className: 'row'}, field('Lien (optionnel)', n, 'link', {ph: 'https://…'})),
+      imageBlock(n),
+      el('p', {className: 'hint'}, newsPreview(n)),
+      el('div', {className: 'bar'}, check('★ Épingler en tête du carrousel', 'pinned'), check('Archive seulement (pas dans le carrousel)', 'archiveOnly'), remove('cette actualité', () => news.items.splice(i, 1))));
+  });
+  const add = (label, extra) => el('button', {className: 'pri', onclick: () => {
+    const d = new Date().toISOString().slice(0, 10);
+    let id = slugify('actualite-' + d); for (let k = 2; news.items.some((x) => x.id === id); k++) id = slugify('actualite-' + d) + '-' + k;
+    news.items.unshift({id, date: d, type: 'nouvelle', title: {fr: '', en: ''}, text: {fr: '', en: ''}, link: '', ...extra});
+    sortNews(); dirty(); render();
+  }}, label);
+  return el('div', {},
+    el('div', {className: 'card'}, el('h2', {}, 'Actualités'),
+      el('p', {className: 'hint'}, 'Une nouvelle carte arrive toujours en tête (date du jour). Ordre sur le site : cartes épinglées d’abord, puis de la plus récente à la plus ancienne. Le carrousel montre les 12 premières ; la page /actualites les liste toutes, avec filtre par type.'),
+      el('div', {className: 'bar'}, add('+ Projet en cours', {type: 'projet', status: 'en-cours'}), add('+ Article', {type: 'publication', status: 'accepte'}), add('+ Événement', {type: 'participation'}), add('+ Nouvelle', {type: 'nouvelle'}))),
+    cards);
+}
+
 // ---- rendu
 function render() {
-  $('#tab-mod').className = tab === 'mod' ? 'on' : ''; $('#tab-res').className = tab === 'res' ? 'on' : ''; $('#tab-imp').className = tab === 'imp' ? 'on' : ''; $('#tab-prof').className = tab === 'prof' ? 'on' : ''; $('#tab-pub').className = tab === 'pub' ? 'on' : '';
+  $('#tab-mod').className = tab === 'mod' ? 'on' : ''; $('#tab-res').className = tab === 'res' ? 'on' : ''; $('#tab-imp').className = tab === 'imp' ? 'on' : ''; $('#tab-prof').className = tab === 'prof' ? 'on' : ''; $('#tab-news').className = tab === 'news' ? 'on' : ''; $('#tab-pub').className = tab === 'pub' ? 'on' : '';
   const v = $('#view'); v.replaceChildren();
   if (tab === 'res') return v.append(researchView());
   if (tab === 'imp') return v.append(importView());
+  if (tab === 'news') return v.append(newsView());
   if (tab === 'prof') return v.append(profileView());
   if (tab === 'pub') return v.append(publishView());
   const sel = el('select');
@@ -404,6 +554,7 @@ $('#tab-mod').onclick = () => { tab = 'mod'; render(); };
 $('#tab-res').onclick = () => { tab = 'res'; render(); };
 $('#tab-imp').onclick = () => { tab = 'imp'; render(); };
 $('#tab-prof').onclick = () => { tab = 'prof'; render(); };
+$('#tab-news').onclick = () => { tab = 'news'; render(); };
 $('#tab-pub').onclick = () => { tab = 'pub'; render(); };
 
 $('#save').onclick = async () => {
@@ -414,6 +565,9 @@ $('#save').onclick = async () => {
   const r2 = await api('/api/profile', {method: 'PUT', headers: h, body: JSON.stringify(prof)});
   const j2 = await r2.json();
   if (!r2.ok) return say('Catalogue enregistré, mais le profil est refusé :\n' + (j2.errors || [j2.error]).join('\n'), 'err');
+  const r3 = await api('/api/news', {method: 'PUT', headers: h, body: JSON.stringify(news)});
+  const j3 = await r3.json();
+  if (!r3.ok) return say('Catalogue et profil enregistrés, mais les actualités sont refusées :\n' + (j3.errors || [j3.error]).join('\n'), 'err');
   dirtyFlag = false; $('#save').disabled = true; $('#state').textContent = 'enregistré'; $('#state').className = 'hint';
   say('Enregistré. Vérifiez avec « npm start », puis utilisez l’onglet Publication.', 'ok');
 };
@@ -423,6 +577,7 @@ window.onbeforeunload = () => (dirtyFlag ? 'Modifications non enregistrées' : u
   const res = await fetch('/api/catalogue');
   cat = await res.json();
   prof = await (await fetch('/api/profile')).json();
+  news = await (await fetch('/api/news')).json();
   cat.options.themes = cat.options.themes || {};
   cur = cat.modules[0] || null;
   $('#state').textContent = 'à jour';
