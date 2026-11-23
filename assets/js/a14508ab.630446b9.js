@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkmy_website=self.webpackChunkmy_website||[]).push([[1005],{3282:e=>{e.exports=JSON.parse('{"name":"catalogue-plugin","id":"default"}')}}]);
