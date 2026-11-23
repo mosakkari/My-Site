@@ -1,23 +1,18 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
 .heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+  padding: 5rem 0 4rem;
+  background: linear-gradient(135deg, #0b2a4a 0%, #14507a 60%, #1c7c8c 100%);
+  color: #fff;
 }
-
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
-}
-
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+.role { text-transform: uppercase; letter-spacing: .12em; font-size: .85rem; opacity: .8; margin: 0 0 .75rem; }
+.name { font-size: clamp(2.2rem, 6vw, 3.8rem); margin: 0 0 1rem; color: #fff; }
+.intro { max-width: 640px; font-size: 1.2rem; opacity: .92; margin-bottom: 2rem; }
+.buttons { display: flex; flex-wrap: wrap; gap: .75rem; }
+.btnMain, .btnGhost { display: inline-block; padding: .8rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none !important; transition: transform .15s, background .15s; }
+.btnMain { background: #fff; color: #0b2a4a !important; border: 2px solid #fff; }
+.btnMain:hover { transform: translateY(-2px); background: #e8f1f8; }
+.btnGhost { color: #fff !important; border: 2px solid rgba(255,255,255,.7); }
+.btnGhost:hover { background: rgba(255,255,255,.14); }
+.pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; padding: 3rem 0; }
+.pillar { padding: 1.5rem; border-radius: 14px; border: 1px solid var(--ifm-color-emphasis-200); background: var(--ifm-background-surface-color); }
+.pillar h3 { margin-top: 0; }
+.pillar p { margin-bottom: 0; color: var(--ifm-color-emphasis-700); }

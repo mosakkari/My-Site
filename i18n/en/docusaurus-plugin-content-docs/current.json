@@ -1,0 +1,26 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.coursSidebar.category.Big Data": {
+    "message": "Big Data",
+    "description": "The label for category Big Data in sidebar coursSidebar"
+  },
+  "sidebar.coursSidebar.category.BD NoSQL": {
+    "message": "BD NoSQL",
+    "description": "The label for category BD NoSQL in sidebar coursSidebar"
+  },
+  "sidebar.coursSidebar.category.BD4": {
+    "message": "BD4",
+    "description": "The label for category BD4 in sidebar coursSidebar"
+  },
+  "sidebar.coursSidebar.category.DATA5": {
+    "message": "DATA5",
+    "description": "The label for category DATA5 in sidebar coursSidebar"
+  },
+  "sidebar.coursSidebar.category.BD2": {
+    "message": "BD2",
+    "description": "The label for category BD2 in sidebar coursSidebar"
+  }
+}

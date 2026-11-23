@@ -1,41 +1,56 @@
-# Website
+# Site personnel : Mohamed SAKKARI
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+Site bilingue (FR/EN) d'enseignement et de recherche, construit avec [Docusaurus](https://docusaurus.io/) et publié sur GitHub Pages : https://mosakkari.github.io/My-Site/
 
-### Installation
+## Principe
 
-```
-$ yarn
-```
+Le contenu est décrit dans deux fichiers, qu'on n'édite normalement **pas à la main** mais avec le dashboard :
 
-### Local Development
+| Fichier | Contenu |
+|---|---|
+| `data/catalogue.json` | modules, années universitaires, séances, ressources, travaux de recherche |
+| `data/profile.json` | page À propos : présentation, liens, thèmes, parcours, CV |
 
-```
-$ yarn start
-```
+Les fichiers publiés (PDF, notebooks, données) sont dans `static/files/`. Le dépôt est **public** : ne jamais y mettre de copies d'étudiants, de notes ni de fichiers dont les droits sont incertains.
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-### Build
+## Utilisation courante
 
 ```
-$ yarn build
+npm install        # une seule fois
+npm run admin      # dashboard local : http://127.0.0.1:4000
+npm start          # voir le site en local : http://localhost:3000/My-Site/
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+Dans le dashboard :
 
-### Deployment
+- **Modules** : créer un module, une année, des séances, des ressources (fichier, lien externe ou masquée), les heures, la licence, le dépôt GitHub du cours (optionnel).
+- **Recherche** : travaux avec lien vers l'article et/ou le dépôt (tous optionnels).
+- **Importer depuis un dossier** : analyse un dossier de cours, bloque les fichiers sensibles, copie seulement ce que vous cochez.
+- **Profil** : page À propos et CV.
+- **Publication** : nettoie les fichiers orphelins, puis `git add` + `commit` + `push`.
 
-Using SSH:
+Cliquer sur **Enregistrer** avant de publier. Chaque push sur `main` déclenche le déploiement (`.github/workflows/deploy.yml`).
+
+## Règles de visibilité
+
+- Une ressource `hidden` n'est jamais affichée et son fichier n'est pas copié dans ce dépôt.
+- Les liens non `http(s)` sont ignorés.
+- Le dashboard n'écoute que sur `127.0.0.1`.
+
+## Structure
 
 ```
-$ USE_SSH=true yarn deploy
+data/            catalogue.json, profile.json
+plugins/catalogue/   génère les pages à partir des données
+src/components/Catalogue/   pages : modules, années, bilan, recherche, à propos, mentions légales
+admin/           dashboard local (Node, sans dépendance)
+i18n/en/         traductions anglaises de la navigation
+static/files/    fichiers publiés
+docs/cours/      anciens brouillons, à migrer puis supprimer
 ```
 
-Not using SSH:
+## Déploiement manuel
 
 ```
-$ GIT_USER=<Your GitHub username> yarn deploy
+GIT_USER=<utilisateur GitHub> npm run deploy
 ```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.

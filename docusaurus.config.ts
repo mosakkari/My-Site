@@ -23,9 +23,47 @@ const config: Config = {
   onBrokenMarkdownLinks: 'warn',
 
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: 'fr',
+    locales: ['fr', 'en'],
+    localeConfigs: {
+      fr: {label: 'Français'},
+      en: {label: 'English'},
+    },
   },
+
+  plugins: ['./plugins/catalogue'],
+
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        language: ['fr', 'en'],
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: true,
+        docsRouteBasePath: '/docs',
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
+
+  // Referencement : donnees structurees (Person) lues par les moteurs de recherche.
+  headTags: [
+    {
+      tagName: 'script',
+      attributes: {type: 'application/ld+json'},
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: 'Mohamed SAKKARI',
+        jobTitle: 'Enseignant-chercheur',
+        affiliation: {'@type': 'CollegeOrUniversity', name: 'IUT de La Rochelle'},
+        url: 'https://mosakkari.github.io/My-Site/',
+        sameAs: ['https://github.com/mosakkari'],
+      }),
+    },
+  ],
 
   presets: [
     [
@@ -33,21 +71,8 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -56,20 +81,25 @@ const config: Config = {
   ],
 
   themeConfig: {
+    colorMode: {
+      respectPrefersColorScheme: true,
+    },
+    image: 'img/social-card.png',
+    metadata: [
+      {name: 'description', content: 'Cours, TD et TP de bases de données, données et intelligence artificielle. IUT de La Rochelle.'},
+    ],
     navbar: {
-      title: 'My Site',
+      title: 'Mohamed SAKKARI',
       logo: {
-        alt: 'My Site Logo',
-        src: 'img/home.gif',
+        alt: 'Mohamed SAKKARI',
+        src: 'img/med.jpg',
       },
       items: [
-        {
-          type: 'docSidebar',
-          sidebarId: 'coursSidebar',
-          position: 'left',
-          label: 'Cours',
-        },
-        { to: '/blog', label: 'Blog', position: 'left' },
+        {to: '/apropos', label: 'À propos', position: 'left'},
+        {to: '/enseignement', label: 'Enseignement', position: 'left'},
+        {to: '/recherche', label: 'Recherche', position: 'left'},
+        {type: 'search', position: 'right'},
+        {type: 'localeDropdown', position: 'right'},
         {
           href: 'https://github.com/mosakkari',
           label: 'GitHub',
@@ -82,46 +112,23 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Enseignement',
           items: [
-            {
-              label: 'Parcours xxxxxx',
-              to: '/docs/intro',
-            },
+            {label: 'Tous les modules', to: '/enseignement'},
+            {label: 'Par année universitaire', to: '/enseignement/annees'},
+            {label: 'Bilan de l’enseignement', to: '/enseignement/bilan'},
           ],
         },
         {
-          title: 'Community',
+          title: 'Liens',
           items: [
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
-            },
+            {label: 'À propos', to: '/apropos'},
+            {label: 'GitHub', href: 'https://github.com/mosakkari'},
+            {label: 'Mentions légales', to: '/mentions-legales'},
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `© ${new Date().getFullYear()} Mohamed SAKKARI. Site construit avec Docusaurus.`,
     },
 
     prism: {

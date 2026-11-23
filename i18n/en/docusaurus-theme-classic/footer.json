@@ -1,0 +1,38 @@
+{
+  "link.title.Enseignement": {
+    "message": "Teaching",
+    "description": "The title of the footer links column with title=Enseignement in the footer"
+  },
+  "link.title.Liens": {
+    "message": "Links",
+    "description": "The title of the footer links column with title=Liens in the footer"
+  },
+  "link.item.label.Tous les modules": {
+    "message": "All modules",
+    "description": "The label of footer link with label=Tous les modules linking to /enseignement"
+  },
+  "link.item.label.Par année universitaire": {
+    "message": "By academic year",
+    "description": "The label of footer link with label=Par année universitaire linking to /enseignement/annees"
+  },
+  "link.item.label.Bilan de l’enseignement": {
+    "message": "Teaching summary",
+    "description": "The label of footer link with label=Bilan de l’enseignement linking to /enseignement/bilan"
+  },
+  "link.item.label.À propos": {
+    "message": "About",
+    "description": "The label of footer link with label=À propos linking to /apropos"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/mosakkari"
+  },
+  "link.item.label.Mentions légales": {
+    "message": "Legal notice",
+    "description": "The label of footer link with label=Mentions légales linking to /mentions-legales"
+  },
+  "copyright": {
+    "message": "© 2026 Mohamed SAKKARI. Built with Docusaurus.",
+    "description": "The footer copyright"
+  }
+}

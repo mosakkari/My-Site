@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · Enseignements</title>
+<style>
+  :root { --bg:#f5f7fa; --card:#fff; --ink:#1b2733; --mut:#5d6b7a; --line:#d9e0e8; --pri:#14507a; --warn:#b45309; --bad:#b42318; --ok:#1a7f4b; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#10161d; --card:#18212b; --ink:#e6edf3; --mut:#9aa8b6; --line:#2b3947; --pri:#5bb8e8; --warn:#f4b942; --bad:#ff7b72; --ok:#4ac98a; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { position:sticky; top:0; z-index:5; display:flex; gap:.75rem; align-items:center; padding:.7rem 1.25rem; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { font-size:1.05rem; margin:0; flex:1; }
+  main { max-width:980px; margin:1.25rem auto; padding:0 1rem 6rem; }
+  nav.tabs { display:flex; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+  button { font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); padding:.4rem .8rem; border-radius:8px; }
+  button.pri { background:var(--pri); border-color:var(--pri); color:#fff; font-weight:600; }
+  button.on { border-color:var(--pri); box-shadow:0 0 0 1px var(--pri) inset; }
+  button.del { color:var(--bad); }
+  button:disabled { opacity:.5; cursor:default; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:1rem 1.15rem; margin-bottom:1rem; }
+  .card .card { background:transparent; margin:.75rem 0 0; }
+  h2, h3, h4 { margin:.2rem 0 .7rem; }
+  .row { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:.75rem; }
+  label { display:flex; flex-direction:column; gap:.2rem; font-size:.82rem; color:var(--mut); font-weight:600; }
+  input, select, textarea { font:inherit; padding:.4rem .55rem; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); width:100%; }
+  textarea { min-height:3.2rem; resize:vertical; }
+  .bar { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; margin-top:.7rem; }
+  .hint { color:var(--mut); font-size:.82rem; }
+  .pub { color:var(--ok); font-weight:600; } .hid { color:var(--warn); font-weight:600; }
+  #msg { padding:.5rem .8rem; border-radius:8px; margin-bottom:1rem; display:none; white-space:pre-wrap; }
+  #msg.ok { display:block; background:color-mix(in srgb, var(--ok) 15%, var(--card)); border:1px solid var(--ok); }
+  #msg.err { display:block; background:color-mix(in srgb, var(--bad) 12%, var(--card)); border:1px solid var(--bad); }
+  .dirty { color:var(--warn); font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  td, th { padding:.3rem .45rem; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  td.path { word-break:break-all; }
+  .flag { display:inline-block; font-size:.74rem; font-weight:600; padding:.05rem .45rem; border-radius:999px; margin:.1rem .2rem .1rem 0; background:color-mix(in srgb, var(--warn) 18%, var(--card)); color:var(--warn); }
+  .flag.bloque, .flag.perso, .flag.gros { background:color-mix(in srgb, var(--bad) 15%, var(--card)); color:var(--bad); }
+  tr.off { opacity:.45; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Dashboard · enseignements et recherche</h1>
+  <span id="state" class="hint">chargement…</span>
+  <button id="save" class="pri" disabled>Enregistrer</button>
+</header>
+<main>
+  <div id="msg"></div>
+  <nav class="tabs">
+    <button id="tab-mod" class="on">Modules</button>
+    <button id="tab-res">Recherche</button>
+    <button id="tab-imp">Importer depuis un dossier</button>
+    <button id="tab-prof">Profil</button>
+    <button id="tab-pub">Publication</button>
+  </nav>
+  <div id="view"></div>
+</main>
+
+<script>
+let cat = null, tab = 'mod', cur = null, dirtyFlag = false;
+const $ = (s) => document.querySelector(s);
+const el = (tag, props = {}, ...kids) => {
+  const n = Object.assign(document.createElement(tag), props);
+  kids.flat().forEach((k) => n.append(k));
+  return n;
+};
+const api = (url, opt = {}) => fetch(url, {...opt, headers: {'X-Admin': '1', ...(opt.headers || {})}});
+const slug = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+function say(text, kind) { const m = $('#msg'); m.className = kind; m.textContent = text; if (kind === 'ok') setTimeout(() => { m.className = ''; }, 4000); }
+function dirty() { dirtyFlag = true; $('#save').disabled = false; $('#state').textContent = 'modifications non enregistrées'; $('#state').className = 'dirty'; }
+
+// ---- composants de formulaire
+function field(label, obj, key, o = {}) {
+  const i = el(o.area ? 'textarea' : 'input', {value: obj[key] ?? '', placeholder: o.ph || ''});
+  i.oninput = () => { obj[key] = i.value; dirty(); };
+  return el('label', {}, label, i);
+}
+function choice(label, obj, key, list) {
+  const s = el('select');
+  const fill = () => { s.replaceChildren(el('option', {value: ''}, '—'), ...list.map((v) => el('option', {value: v, selected: v === obj[key]}, v)), el('option', {value: '__new'}, '+ Ajouter une valeur…')); };
+  fill();
+  s.onchange = () => {
+    if (s.value === '__new') {
+      const v = (prompt(`Nouvelle valeur pour « ${label} » :`) || '').trim();
+      if (v && !list.includes(v)) list.push(v);
+      obj[key] = v || ''; fill(); s.value = obj[key];
+    } else obj[key] = s.value;
+    dirty();
+  };
+  return el('label', {}, label, s);
+}
+function themeChoice(m) {
+  const s = el('select');
+  const fill = () => { s.replaceChildren(el('option', {value: ''}, '—'), ...Object.entries(cat.options.themes).map(([k, v]) => el('option', {value: k, selected: k === m.theme}, v.fr)), el('option', {value: '__new'}, '+ Nouveau thème…')); };
+  fill();
+  s.onchange = () => {
+    if (s.value === '__new') {
+      const fr = (prompt('Nom du thème en français :') || '').trim(); if (!fr) { s.value = m.theme; return; }
+      const en = (prompt('Nom du thème en anglais :', fr) || fr).trim();
+      const k = slug(fr); cat.options.themes[k] = {fr, en}; m.theme = k; fill(); s.value = k;
+    } else m.theme = s.value;
+    dirty();
+  };
+  return el('label', {}, 'Thème', s);
+}
+function loc(label, obj, key, area) {
+  obj[key] = obj[key] || {fr: '', en: ''};
+  return el('div', {className: 'row'}, field(label + ' (FR)', obj[key], 'fr', {area}), field(label + ' (EN)', obj[key], 'en', {area}));
+}
+function remove(label, fn) { return el('button', {className: 'del', onclick: () => { if (confirm(`Supprimer ${label} ?`)) { fn(); dirty(); render(); } }}, 'Supprimer'); }
+
+// ---- ressource
+function resourceCard(m, e, s, r, i) {
+  const vis = el('select');
+  vis.append(el('option', {value: 'public', selected: r.visibility === 'public'}, 'Publique'), el('option', {value: 'hidden', selected: r.visibility === 'hidden'}, 'Masquée (non publiée)'));
+  vis.onchange = () => { r.visibility = vis.value; if (r.visibility === 'hidden') { delete r.file; } dirty(); render(); };
+  const type = el('select');
+  ['cours', 'td', 'tp', 'notebook', 'data', 'kit', 'qcm', 'corrige', 'autre'].forEach((t) => type.append(el('option', {value: t, selected: t === r.type}, t)));
+  type.onchange = () => { r.type = type.value; dirty(); };
+  r.title = typeof r.title === 'string' ? r.title : (r.title || {}).fr || '';
+  const box = el('div', {className: 'card'},
+    el('div', {className: 'row'}, el('label', {}, 'Type', type), field('Titre (optionnel)', r, 'title'), el('label', {}, 'Visibilité', vis)));
+  if (r.visibility === 'hidden') {
+    box.append(el('p', {className: 'hint'}, 'Cette ressource n’est pas publiée : aucun fichier n’est copié dans le dépôt (qui est public).'));
+  } else {
+    const pick = el('input', {type: 'file'});
+    pick.onchange = async () => {
+      const f = pick.files[0]; if (!f) return;
+      say('Envoi de ' + f.name + '…', 'ok');
+      const q = new URLSearchParams({module: m.id, year: e.year, name: f.name});
+      const res = await api('/api/upload?' + q, {method: 'POST', body: f});
+      const j = await res.json();
+      if (!res.ok) return say(j.error, 'err');
+      r.file = j.file; delete r.url; dirty(); say(`Fichier envoyé (${(j.bytes / 1024).toFixed(0)} Ko)`, 'ok'); render();
+    };
+    box.append(el('div', {className: 'row'},
+      el('label', {}, 'Fichier ' + (r.file ? '(actuel : ' + r.file + ')' : ''), pick),
+      field('… ou lien externe (https://)', r, 'url', {ph: 'https://github.com/…'})));
+    if (r.type === 'notebook') {
+      const c = el('input', {type: 'checkbox', checked: !!r.colab, style: 'width:auto'});
+      c.onchange = () => { r.colab = c.checked; dirty(); };
+      box.append(el('label', {style: 'flex-direction:row;gap:.5rem;align-items:center;margin-top:.5rem'}, c, 'Afficher un bouton « Ouvrir dans Colab »'));
+    }
+  }
+  box.append(el('div', {className: 'bar'}, remove('cette ressource', () => s.resources.splice(i, 1))));
+  return box;
+}
+
+// ---- séance / édition / module
+function sessionCard(m, e, s, i) {
+  s.resources = s.resources || [];
+  const st = el('select');
+  [['ready', 'Disponible'], ['draft', 'En préparation'], ['upcoming', 'À venir']].forEach(([v, t]) => st.append(el('option', {value: v, selected: v === s.status}, t)));
+  st.onchange = () => { s.status = st.value; dirty(); };
+  const idf = field('Identifiant', s, 'id', {ph: 's42-etl'});
+  return el('div', {className: 'card'},
+    el('h4', {}, `Séance ${s.label || ''}`),
+    el('div', {className: 'row'}, field('Repère (S42, TP1…)', s, 'label'), idf, el('label', {}, 'Statut', st)),
+    loc('Titre', s, 'title'),
+    el('h4', {style: 'margin-top:1rem'}, 'Ressources'),
+    s.resources.map((r, k) => resourceCard(m, e, s, r, k)),
+    el('div', {className: 'bar'},
+      el('button', {onclick: () => { s.resources.push({type: 'cours', title: '', visibility: 'public'}); dirty(); render(); }}, '+ Ressource'),
+      el('button', {onclick: () => { const j = i - 1; if (j < 0) return; [e.sessions[i], e.sessions[j]] = [e.sessions[j], e.sessions[i]]; dirty(); render(); }}, '↑'),
+      el('button', {onclick: () => { const j = i + 1; if (j >= e.sessions.length) return; [e.sessions[i], e.sessions[j]] = [e.sessions[j], e.sessions[i]]; dirty(); render(); }}, '↓'),
+      remove('cette séance', () => e.sessions.splice(i, 1))));
+}
+function editionCard(m, e, i) {
+  e.sessions = e.sessions || []; e.links = e.links || {};
+  return el('div', {className: 'card'},
+    el('h3', {}, `Année ${e.year}`),
+    el('div', {className: 'row'}, field('Dépôt GitHub de cette année (optionnel)', e.links, 'repo', {ph: 'https://github.com/…'})),
+    (e.hours = e.hours || {}, el('div', {className: 'row', style: 'margin-top:.6rem'}, num('Heures de CM', e.hours, 'cm'), num('Heures de TD', e.hours, 'td'), num('Heures de TP', e.hours, 'tp'))),
+    e.sessions.map((s, k) => sessionCard(m, e, s, k)),
+    el('div', {className: 'bar'},
+      el('button', {onclick: () => { e.sessions.push({id: '', label: '', title: {fr: '', en: ''}, status: 'ready', resources: []}); dirty(); render(); }}, '+ Séance'),
+      remove(`l’année ${e.year}`, () => m.editions.splice(i, 1))));
+}
+function moduleView(m) {
+  m.links = m.links || {}; m.editions = m.editions || [];
+  return el('div', {},
+    el('div', {className: 'card'}, el('h2', {}, 'Module'),
+      el('div', {className: 'row'}, field('Identifiant (URL)', m, 'id', {ph: 'bd5'}), field('Code (R5.C.05…)', m, 'code'),
+        choice('Niveau', m, 'level', cat.options.levels), choice('Spécialité', m, 'speciality', cat.options.specialities),
+        choice('Établissement', m, 'institution', cat.options.institutions), themeChoice(m), licenseChoice(m)),
+      loc('Titre', m, 'title'), loc('Résumé', m, 'summary', true),
+      el('div', {className: 'row', style: 'margin-top:.75rem'}, field('Dépôt GitHub du cours (optionnel)', m.links, 'repo', {ph: 'https://github.com/…'}))),
+    m.editions.map((e, i) => editionCard(m, e, i)),
+    el('div', {className: 'bar'},
+      el('button', {onclick: () => {
+        const y = (prompt('Année universitaire (ex. 2026-2027) :') || '').trim(); if (!y) return;
+        if (m.editions.some((e) => e.year === y)) return say('Cette année existe déjà.', 'err');
+        m.editions.push({year: y, sessions: []}); dirty(); render();
+      }}, '+ Année universitaire'),
+      remove('ce module', () => { cat.modules.splice(cat.modules.indexOf(m), 1); cur = null; })));
+}
+
+// ---- recherche
+function researchView() {
+  cat.research = cat.research || [];
+  const list = cat.research.map((r, i) => {
+    r.links = r.links || {};
+    r.title = r.title || {fr: '', en: ''};
+    return el('div', {className: 'card'},
+      el('div', {className: 'row'}, field('Identifiant', r, 'id', {ph: 'article-2026'}), field('Année', r, 'year'), field('Auteurs', r, 'authors'), field('Revue / conférence', r, 'venue')),
+      loc('Titre', r, 'title'), loc('Résumé', r, 'abstract', true),
+      el('div', {className: 'row'}, field('Lien de l’article (optionnel)', r.links, 'paper'), field('PDF (optionnel)', r.links, 'pdf'), field('DOI (optionnel)', r.links, 'doi'), field('Dépôt de code (optionnel)', r.links, 'repo')),
+      el('div', {className: 'bar'}, remove('ce travail', () => cat.research.splice(i, 1))));
+  });
+  return el('div', {}, list, el('button', {className: 'pri', onclick: () => { cat.research.push({id: '', year: new Date().getFullYear(), title: {fr: '', en: ''}, links: {}}); dirty(); render(); }}, '+ Travail de recherche'));
+}
+
+
+// ---- import depuis un dossier
+const imp = {dir: '', files: null, sel: new Set(), types: {}, module: '', year: '', session: ''};
+const guessType = (rel) => {
+  const l = rel.toLowerCase();
+  if (l.endsWith('.ipynb')) return 'notebook';
+  if (/corrig|correction|solution/.test(l)) return 'corrige';
+  if (/qcm/.test(l)) return 'qcm';
+  if (/(^|[\/_ -])(support|cours|cm|poly|slides)/.test(l)) return 'cours';
+  if (/(^|[\/_ -])td/.test(l)) return 'td';
+  if (/(^|[\/_ -])tp/.test(l)) return 'tp';
+  if (/data|\.csv$|\.zip$/.test(l)) return 'data';
+  return 'autre';
+};
+const kb = (n) => n > 1048576 ? (n / 1048576).toFixed(1) + ' Mo' : Math.max(1, Math.round(n / 1024)) + ' Ko';
+
+function importView() {
+  const box = el('div', {});
+  const dirIn = el('input', {value: imp.dir, placeholder: 'C:\\Users\\…\\bd5'});
+  dirIn.oninput = () => { imp.dir = dirIn.value; };
+  const scan = el('button', {className: 'pri', onclick: async () => {
+    const res = await api('/api/scan', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({dir: imp.dir})});
+    const j = await res.json(); if (!res.ok) return say(j.error, 'err');
+    imp.files = j.files; imp.sel = new Set(); imp.types = {}; j.files.forEach((f) => { imp.types[f.rel] = guessType(f.rel); });
+    say(`${j.files.length} fichiers trouvés. Rien n’est coché : choisissez ce qui doit être publié.`, 'ok'); render();
+  }}, 'Analyser');
+  box.append(el('div', {className: 'card'}, el('h2', {}, 'Importer depuis un dossier de cours'),
+    el('p', {className: 'hint'}, 'Le site est public : ne cochez que ce qui doit l’être. Les fichiers signalés en rouge (données personnelles, sources, trop gros) sont bloqués ou demandent une confirmation.'),
+    el('div', {className: 'bar'}, el('div', {style: 'flex:1;min-width:280px'}, dirIn), scan)));
+  if (!imp.files) return box;
+
+  // destination
+  const mods = cat.modules.filter((m) => m.id);
+  if (!imp.module || !mods.some((m) => m.id === imp.module)) imp.module = mods[0] ? mods[0].id : '';
+  const m = mods.find((x) => x.id === imp.module);
+  const years = m ? (m.editions || []).map((e) => e.year) : [];
+  if (!years.includes(imp.year)) imp.year = years[0] || '';
+  const e = m && (m.editions || []).find((x) => x.year === imp.year);
+  const sessions = e ? (e.sessions || []).filter((x) => x.id) : [];
+  if (!sessions.some((x) => x.id === imp.session)) imp.session = sessions[0] ? sessions[0].id : '';
+  const mk = (label, val, opts, on) => { const sel = el('select'); opts.forEach(([v, t]) => sel.append(el('option', {value: v, selected: v === val}, t))); sel.onchange = () => { on(sel.value); render(); }; return el('label', {}, label, sel); };
+  box.append(el('div', {className: 'card'}, el('h3', {}, 'Destination'),
+    el('div', {className: 'row'},
+      mk('Module', imp.module, mods.map((x) => [x.id, x.title.fr || x.id]), (v) => { imp.module = v; }),
+      mk('Année', imp.year, years.map((y) => [y, y]), (v) => { imp.year = v; }),
+      mk('Séance', imp.session, sessions.map((x) => [x.id, `${x.label} ${x.title.fr}`]), (v) => { imp.session = v; })),
+    !sessions.length ? el('p', {className: 'hint'}, 'Ce module n’a pas encore de séance pour cette année : créez-la d’abord dans l’onglet Modules.') : ''));
+
+  // fichiers
+  const tbl = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, ''), el('th', {}, 'Fichier'), el('th', {}, 'Taille'), el('th', {}, 'Type'), el('th', {}, 'Remarques'))));
+  const body = el('tbody');
+  imp.files.forEach((f) => {
+    const blocked = f.flags.some((x) => x.k === 'bloque' || x.k === 'gros');
+    const cb = el('input', {type: 'checkbox', checked: imp.sel.has(f.rel), disabled: blocked, style: 'width:auto'});
+    cb.onchange = () => { cb.checked ? imp.sel.add(f.rel) : imp.sel.delete(f.rel); $('#count').textContent = imp.sel.size; };
+    const ty = el('select', {disabled: blocked});
+    ['cours', 'td', 'tp', 'notebook', 'data', 'kit', 'qcm', 'corrige', 'autre'].forEach((t) => ty.append(el('option', {value: t, selected: t === imp.types[f.rel]}, t)));
+    ty.onchange = () => { imp.types[f.rel] = ty.value; };
+    body.append(el('tr', {className: blocked ? 'off' : ''}, el('td', {}, cb), el('td', {className: 'path'}, f.rel), el('td', {}, kb(f.size)), el('td', {}, ty),
+      el('td', {}, f.flags.map((x) => el('span', {className: 'flag ' + x.k}, x.t)))));
+  });
+  tbl.append(body);
+  const go = el('button', {className: 'pri', disabled: !sessions.length, onclick: async () => {
+    const items = [...imp.sel]; if (!items.length) return say('Aucun fichier coché.', 'err');
+    const risky = imp.files.filter((f) => imp.sel.has(f.rel) && f.flags.some((x) => ['perso', 'droits', 'corrige'].includes(x.k)));
+    if (risky.length && !confirm(`${risky.length} fichier(s) sélectionné(s) sont signalés (données personnelles, droits d’image ou corrigés) :\n\n${risky.slice(0, 8).map((f) => '• ' + f.rel).join('\n')}\n\nLe dépôt est public. Les publier quand même ?`)) return;
+    const res = await api('/api/import', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({dir: imp.dir, module: imp.module, year: imp.year, session: imp.session, items})});
+    const j = await res.json(); if (!res.ok) return say(j.error, 'err');
+    const target = cat.modules.find((x) => x.id === imp.module).editions.find((x) => x.year === imp.year).sessions.find((x) => x.id === imp.session);
+    target.resources = target.resources || [];
+    j.done.forEach((d) => { const t = imp.types[d.rel]; target.resources.push({type: t, title: d.rel.split('/').pop().replace(/\.[^.]+$/, ''), file: d.file, ...(t === 'notebook' ? {colab: true} : {}), visibility: 'public'}); imp.sel.delete(d.rel); });
+    if (j.done.length) dirty();
+    say(`${j.done.length} fichier(s) copié(s)${j.refused.length ? ', ' + j.refused.length + ' refusé(s) : ' + j.refused.map((r) => r.rel + ' (' + r.why + ')').join(', ') : ''}. Pensez à Enregistrer.`, j.refused.length ? 'err' : 'ok');
+    render();
+  }}, 'Importer la sélection');
+  box.append(el('div', {className: 'card'}, el('h3', {}, 'Fichiers trouvés'), tbl, el('div', {className: 'bar'}, go, el('span', {className: 'hint'}, el('span', {id: 'count'}, imp.sel.size), ' sélectionné(s)'))));
+  return box;
+}
+
+
+// ---- heures, licence
+function num(label, obj, key) {
+  const i = el('input', {type: 'number', min: 0, step: '0.5', value: obj[key] ?? ''});
+  i.oninput = () => { if (i.value === '') delete obj[key]; else obj[key] = Number(i.value); dirty(); };
+  return el('label', {}, label, i);
+}
+function licenseChoice(m) {
+  const lic = cat.options.licenses || {};
+  const s = el('select');
+  s.append(el('option', {value: ''}, '— (non précisée)'), ...Object.entries(lic).map(([k, v]) => el('option', {value: k, selected: k === m.license}, v.label)));
+  s.onchange = () => { if (s.value) m.license = s.value; else delete m.license; dirty(); };
+  return el('label', {}, 'Licence du contenu', s);
+}
+
+// ---- profil
+let prof = null;
+function profileView() {
+  const p = prof;
+  p.role = p.role || {fr: '', en: ''}; p.affiliation = p.affiliation || {fr: '', en: ''}; p.bio = p.bio || {fr: '', en: ''};
+  p.links = p.links || {}; p.cv = p.cv || {fr: '', en: ''}; p.themes = p.themes || []; p.timeline = p.timeline || [];
+  const cvUp = (lang) => {
+    const f = el('input', {type: 'file', accept: 'application/pdf'});
+    f.onchange = async () => {
+      if (!f.files[0]) return;
+      const res = await api('/api/upload-cv?lang=' + lang, {method: 'POST', body: f.files[0]});
+      const j = await res.json(); if (!res.ok) return say(j.error, 'err');
+      p.cv[lang] = j.file; dirty(); say('CV (' + lang + ') envoyé. Pensez à Enregistrer.', 'ok'); render();
+    };
+    return el('label', {}, `CV ${lang.toUpperCase()} (PDF)` + (p.cv[lang] ? ' : ' + p.cv[lang] : ''), f);
+  };
+  const themes = p.themes.map((t, i) => el('div', {className: 'row', style: 'align-items:end'}, field('Thème (FR)', t, 'fr'), field('Thème (EN)', t, 'en'), remove('ce thème', () => p.themes.splice(i, 1))));
+  const timeline = p.timeline.map((t, i) => {
+    t.title = t.title || {fr: '', en: ''}; t.detail = t.detail || {fr: '', en: ''};
+    const mv = (d) => () => { const j = i + d; if (j < 0 || j >= p.timeline.length) return; [p.timeline[i], p.timeline[j]] = [p.timeline[j], p.timeline[i]]; dirty(); render(); };
+    return el('div', {className: 'card'},
+      el('div', {className: 'row'}, field('Période', t, 'period', {ph: '2020 – 2024'}), field('Lieu / établissement', t, 'place')),
+      loc('Intitulé', t, 'title'), loc('Détail (optionnel)', t, 'detail', true),
+      el('div', {className: 'bar'}, el('button', {onclick: mv(-1)}, '↑'), el('button', {onclick: mv(1)}, '↓'), remove('cette étape', () => p.timeline.splice(i, 1))));
+  });
+  return el('div', {},
+    el('div', {className: 'card'}, el('h2', {}, 'Profil (page À propos)'),
+      el('p', {className: 'hint'}, 'Tout est optionnel : une section vide n’est pas affichée sur le site.'),
+      el('div', {className: 'row'}, field('Nom', p, 'name'), field('Photo (chemin sous static/)', p, 'photo', {ph: 'img/med.jpg'}), field('Email affiché (optionnel)', p, 'email')),
+      loc('Fonction', p, 'role'), loc('Rattachement', p, 'affiliation'), loc('Présentation', p, 'bio', true),
+      el('h3', {style: 'margin-top:1rem'}, 'Liens'),
+      el('div', {className: 'row'}, field('GitHub', p.links, 'github'), field('LinkedIn', p.links, 'linkedin'), field('ORCID', p.links, 'orcid'), field('HAL', p.links, 'hal'), field('Google Scholar', p.links, 'scholar')),
+      el('h3', {style: 'margin-top:1rem'}, 'CV'), el('div', {className: 'row'}, cvUp('fr'), cvUp('en'))),
+    el('div', {className: 'card'}, el('h3', {}, 'Thèmes de recherche'), themes,
+      el('div', {className: 'bar'}, el('button', {onclick: () => { p.themes.push({fr: '', en: ''}); dirty(); render(); }}, '+ Thème'))),
+    el('div', {className: 'card'}, el('h3', {}, 'Parcours'), timeline,
+      el('div', {className: 'bar'}, el('button', {onclick: () => { p.timeline.push({period: '', title: {fr: '', en: ''}, place: ''}); dirty(); render(); }}, '+ Étape'))));
+}
+
+// ---- publication : fichiers orphelins + Git
+function publishView() {
+  const box = el('div', {});
+  const orph = el('div', {className: 'card'}, el('h2', {}, 'Fichiers orphelins'),
+    el('p', {className: 'hint'}, 'Fichiers présents dans static/files mais cités par aucune ressource (par exemple après une suppression). Enregistrez d’abord vos modifications.'));
+  const listBox = el('div', {});
+  orph.append(el('div', {className: 'bar'}, el('button', {onclick: async () => {
+    const j = await (await api('/api/orphans')).json();
+    listBox.replaceChildren();
+    if (!j.files.length) return listBox.append(el('p', {className: 'hint'}, 'Aucun fichier orphelin.'));
+    const sel = new Set(j.files.map((f) => f.file));
+    j.files.forEach((f) => { const cb = el('input', {type: 'checkbox', checked: true, style: 'width:auto'}); cb.onchange = () => { cb.checked ? sel.add(f.file) : sel.delete(f.file); }; listBox.append(el('label', {style: 'flex-direction:row;gap:.5rem;align-items:center;font-weight:400'}, cb, `${f.file} (${kb(f.size)})`)); });
+    listBox.append(el('div', {className: 'bar'}, el('button', {className: 'del', onclick: async () => {
+      if (!confirm(`Supprimer définitivement ${sel.size} fichier(s) ?`)) return;
+      const r = await (await api('/api/orphans/delete', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({files: [...sel]})})).json();
+      say(`${r.deleted.length} fichier(s) supprimé(s).`, 'ok'); listBox.replaceChildren();
+    }}, 'Supprimer la sélection')));
+  }}, 'Rechercher')), listBox);
+
+  const pub = el('div', {className: 'card'}, el('h2', {}, 'Publier sur GitHub'),
+    el('p', {className: 'hint'}, 'Fait git add (data, static/files, static/img, i18n), git commit puis git push. Le site se met à jour automatiquement après le push. Enregistrez avant de publier.'));
+  const status = el('pre', {className: 'hint', style: 'white-space:pre-wrap'}, 'Cliquez sur « Vérifier » pour voir ce qui sera publié.');
+  const msgIn = el('input', {value: 'Mise à jour du contenu'});
+  const out = el('pre', {style: 'white-space:pre-wrap;font-size:.82rem'});
+  pub.append(status, el('div', {className: 'bar'}, el('button', {onclick: async () => {
+    const j = await (await api('/api/git/status')).json();
+    status.textContent = `Branche : ${j.branch}\n` + (j.changes.length ? j.changes.join('\n') : 'Aucune modification à publier.');
+  }}, 'Vérifier'), el('div', {style: 'flex:1;min-width:240px'}, msgIn), el('button', {className: 'pri', onclick: async () => {
+    if (dirtyFlag) return say('Enregistrez d’abord vos modifications.', 'err');
+    if (!confirm('Publier maintenant (commit + push) ?')) return;
+    out.textContent = 'Publication en cours…';
+    const r = await api('/api/git/publish', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msgIn.value})});
+    const j = await r.json(); out.textContent = j.log || j.error;
+    say(j.ok ? 'Publié. Le site sera à jour dans quelques minutes.' : 'La publication a échoué : voir le détail ci-dessous.', j.ok ? 'ok' : 'err');
+  }}, 'Publier')), out);
+  box.append(orph, pub);
+  return box;
+}
+
+// ---- rendu
+function render() {
+  $('#tab-mod').className = tab === 'mod' ? 'on' : ''; $('#tab-res').className = tab === 'res' ? 'on' : ''; $('#tab-imp').className = tab === 'imp' ? 'on' : ''; $('#tab-prof').className = tab === 'prof' ? 'on' : ''; $('#tab-pub').className = tab === 'pub' ? 'on' : '';
+  const v = $('#view'); v.replaceChildren();
+  if (tab === 'res') return v.append(researchView());
+  if (tab === 'imp') return v.append(importView());
+  if (tab === 'prof') return v.append(profileView());
+  if (tab === 'pub') return v.append(publishView());
+  const sel = el('select');
+  cat.modules.forEach((m) => sel.append(el('option', {value: m.id, selected: m === cur}, `${m.level ? m.level + ' · ' : ''}${m.title.fr || m.id}`)));
+  sel.onchange = () => { cur = cat.modules.find((m) => m.id === sel.value); render(); };
+  v.append(el('div', {className: 'bar', style: 'margin:0 0 1rem'}, sel,
+    el('button', {className: 'pri', onclick: () => { const m = {id: '', code: '', title: {fr: '', en: ''}, level: '', speciality: '', institution: '', theme: '', summary: {fr: '', en: ''}, editions: []}; cat.modules.push(m); cur = m; dirty(); render(); }}, '+ Nouveau module')));
+  if (cur) v.append(moduleView(cur)); else v.append(el('p', {className: 'hint'}, 'Aucun module.'));
+}
+$('#tab-mod').onclick = () => { tab = 'mod'; render(); };
+$('#tab-res').onclick = () => { tab = 'res'; render(); };
+$('#tab-imp').onclick = () => { tab = 'imp'; render(); };
+$('#tab-prof').onclick = () => { tab = 'prof'; render(); };
+$('#tab-pub').onclick = () => { tab = 'pub'; render(); };
+
+$('#save').onclick = async () => {
+  const h = {'Content-Type': 'application/json'};
+  const r1 = await api('/api/catalogue', {method: 'PUT', headers: h, body: JSON.stringify(cat)});
+  const j1 = await r1.json();
+  if (!r1.ok) return say((j1.errors || [j1.error]).join('\n'), 'err');
+  const r2 = await api('/api/profile', {method: 'PUT', headers: h, body: JSON.stringify(prof)});
+  const j2 = await r2.json();
+  if (!r2.ok) return say('Catalogue enregistré, mais le profil est refusé :\n' + (j2.errors || [j2.error]).join('\n'), 'err');
+  dirtyFlag = false; $('#save').disabled = true; $('#state').textContent = 'enregistré'; $('#state').className = 'hint';
+  say('Enregistré. Vérifiez avec « npm start », puis utilisez l’onglet Publication.', 'ok');
+};
+window.onbeforeunload = () => (dirtyFlag ? 'Modifications non enregistrées' : undefined);
+
+(async () => {
+  const res = await fetch('/api/catalogue');
+  cat = await res.json();
+  prof = await (await fetch('/api/profile')).json();
+  cat.options.themes = cat.options.themes || {};
+  cur = cat.modules[0] || null;
+  $('#state').textContent = 'à jour';
+  render();
+})();
+</script>
+</body>
+</html>

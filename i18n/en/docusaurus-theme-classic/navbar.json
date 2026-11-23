@@ -1,0 +1,26 @@
+{
+  "title": {
+    "message": "Mohamed SAKKARI",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "Mohamed SAKKARI",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.À propos": {
+    "message": "About",
+    "description": "Navbar item with label À propos"
+  },
+  "item.label.Enseignement": {
+    "message": "Teaching",
+    "description": "Navbar item with label Enseignement"
+  },
+  "item.label.Recherche": {
+    "message": "Research",
+    "description": "Navbar item with label Recherche"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}
